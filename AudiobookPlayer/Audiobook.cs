@@ -1,324 +1,324 @@
-﻿using System;
-using System.IO;
+﻿// File: AudiobookPlayer/AudiobookPlayer/Audiobook.cs
+// User: Adrian Hum/
+// 
+// Created:  2018-01-18 10:37 AM
+// Modified: 2018-01-18 10:41 AM
+
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Diagnostics;
+using System.Drawing;
+using System.IO;
+using System.Linq;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
-
-using NAudio;
+using System.Threading;
+using NAudio.Wave;
 
 namespace AudiobookPlayer
 {
-	[Serializable]
-	public class Audiobook 
-	{		
-		string name;
-		double length;
-		double position;
-		string path;
-		SortedList<string, double> files;
-		System.Drawing.Image image = null;
-		List<Bookmark> bookmarks;
+    [Serializable]
+    public class Audiobook
+    {
+        [NonSerialized] private AudioPlayer _audioPlayer;
 
-		[NonSerialized]
-		KeyValuePair<string, double> current_file;
-		[NonSerialized]
-		AudioPlayer audioPlayer;
-		[NonSerialized]
-		bool isPlaying = false;
+        private List<Bookmark> _bookmarks;
 
-		public event SearchEventHandler OnCoverSearchFinished;
+        [NonSerialized] private KeyValuePair<string, double> _currentFile;
 
-		#region Constructors / Audiobook Creation Process
-		private Audiobook()
-		{
-			bookmarks = new List<Bookmark>();
-			name = "unnamed";
-			length = 0;
-			position = 0;
-			path = "";
-			files = new SortedList<string, double>();
-		}
+        private Image _image;
 
-		public static Audiobook FromFolder(string path)
-		{
-			if (FolderContainsStateFile(path))
-				return FromSerializedFile(GetStateFile(path));
-			else
-				return FromFolderFiles(path);
-		}
+        [NonSerialized] private bool _isPlaying;
 
-		public static Audiobook FromFolderFiles(string path)
-		{
-			Audiobook book = new Audiobook(); 
-			List<string> raw_files = book.ReadFilesFromFolder(path, "*.mp3");
-			book.files = book.ReadMediaLength(raw_files);
-			book.length = book.ComputeTotalLength();
-			book.position = 0;
-			book.path = path;
-			book.name = new System.IO.DirectoryInfo(path).Name;
-			book.SetCoverImage();
-			return book;
-		}
+        private double _position;
 
-		public static Audiobook FromSerializedFile(string filename)
-		{
-			IFormatter formatter = new BinaryFormatter();
-			using(Stream stream = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read))
-			{ 
-				Audiobook book = (Audiobook)formatter.Deserialize(stream); 
-				return book; 
-			}
-			throw new SerializationException("There was a problem deserializing the state file.");
-		}
+        public event SearchEventHandler OnCoverSearchFinished;
 
-		private void SetCoverImage()
-		{
-			ImageSearch image_search = new ImageSearch(this.Name, 1, 10);
-			image_search.OnFinished += Image_Search_OnFinished;
-			System.Threading.ThreadPool.QueueUserWorkItem(image_search.Start);
-		}
+        #region Constructors / Audiobook Creation Process
 
-		void Image_Search_OnFinished(object source, ImageSearchEventArgs e)
-		{
-			image = e.Results[0];
-			if(OnCoverSearchFinished != null)
-			{
-				List<System.Drawing.Image> temp_list = new List<System.Drawing.Image>(1);
-				temp_list.Add(image);
-				OnCoverSearchFinished(this, new ImageSearchEventArgs(temp_list));
-			}
-		}
+        private Audiobook()
+        {
+            _bookmarks = new List<Bookmark>();
+            Name = "unnamed";
+            Length = 0;
+            _position = 0;
+            Path = "";
+            Files = new SortedList<string, double>();
+        }
+
+        public static Audiobook FromFolder(string path)
+        {
+            if (FolderContainsStateFile(path))
+                return FromSerializedFile(GetStateFile(path));
+            return FromFolderFiles(path);
+        }
+
+        public static Audiobook FromFolderFiles(string path)
+        {
+            var book = new Audiobook();
+            var rawFiles = book.ReadFilesFromFolder(path, "*.mp3");
+            book.Files = book.ReadMediaLength(rawFiles);
+            book.Length = book.ComputeTotalLength();
+            book._position = 0;
+            book.Path = path;
+            book.Name = new DirectoryInfo(path).Name;
+            book.SetCoverImage();
+            return book;
+        }
+
+        public static Audiobook FromSerializedFile(string filename)
+        {
+            IFormatter formatter = new BinaryFormatter();
+            using (Stream stream = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                var book = (Audiobook) formatter.Deserialize(stream);
+                return book;
+            }
+        }
+
+        private void SetCoverImage()
+        {
+            var imageSearch = new ImageSearch(Name, 1, 10);
+            imageSearch.OnFinished += Image_Search_OnFinished;
+            ThreadPool.QueueUserWorkItem(imageSearch.Start);
+        }
+
+        private void Image_Search_OnFinished(object source, ImageSearchEventArgs e)
+        {
+            _image = e.Results[0];
+            if (OnCoverSearchFinished != null)
+            {
+                var tempList = new List<Image>(1);
+                tempList.Add(_image);
+                OnCoverSearchFinished(this, new ImageSearchEventArgs(tempList));
+            }
+        }
 
         private static bool FolderContainsStateFile(string path)
-        { return System.IO.File.Exists(path + System.IO.Path.DirectorySeparatorChar.ToString() + "state.bin"); }
+        {
+            return File.Exists(path + System.IO.Path.DirectorySeparatorChar + "state.bin");
+        }
 
-		private void InitFromSerializationFile(string filename)
-		{
-			filename = GetStateFile(filename);
-		}
+/*
+        private void InitFromSerializationFile(string filename)
+        {
+            filename = GetStateFile(filename);
+        }
+*/
 
         private static string GetStateFile(string path)
         {
-            if ((System.IO.File.GetAttributes(path) & System.IO.FileAttributes.Directory) == System.IO.FileAttributes.Directory)
-                return path + System.IO.Path.DirectorySeparatorChar.ToString() + "state.bin";
-            else if (System.IO.Path.GetFileName(path) == "state.bin")
+            if ((File.GetAttributes(path) & FileAttributes.Directory) == FileAttributes.Directory)
+                return path + System.IO.Path.DirectorySeparatorChar + "state.bin";
+            if (System.IO.Path.GetFileName(path) == "state.bin")
                 return path;
-            else
-                throw new ArgumentException("Given path does not point to a directory or a serialization file.");
+            throw new ArgumentException("Given path does not point to a directory or a serialization file.");
         }
 
-		private List<string> ReadFilesFromFolder(string path, string pattern)
-		{
-			if (System.IO.Directory.Exists(path) == false)
-				throw new System.IO.FileNotFoundException("Could not find folder " + path);
-			return Utilities.GetFilesInFolder(path, pattern, true);
-		}
+        private List<string> ReadFilesFromFolder(string path, string pattern)
+        {
+            if (Directory.Exists(path) == false)
+                throw new FileNotFoundException("Could not find folder " + path);
+            return Utilities.GetFilesInFolder(path, pattern);
+        }
 
-		private SortedList<string, double> ReadMediaLength(List<string> files)
-		{
-			SortedList<string, double> audiobook_files = new SortedList<string, double>();
-			files.Sort();
-			foreach (string s in files)
-			{
-				Debug.WriteLine("Trying to get media information from " + s);
-				NAudio.Wave.AudioFileReader reader = new NAudio.Wave.AudioFileReader(s);
-				audiobook_files.Add(s, reader.TotalTime.TotalSeconds);
-			}
-			return audiobook_files;
-		}
+        private SortedList<string, double> ReadMediaLength(List<string> files)
+        {
+            var audiobookFiles = new SortedList<string, double>();
+            files.Sort();
+            foreach (var s in files)
+            {
+                Debug.WriteLine("Trying to get media information from " + s);
+                var reader = new AudioFileReader(s);
+                audiobookFiles.Add(s, reader.TotalTime.TotalSeconds);
+            }
 
-		public void Serialize(string filename = "")
-		{
-			// in case the filename was not set generate a default one "$AUDIOBOOK_PATH\state.bin"
-			string target_file = (filename == "" ? this.Path + System.IO.Path.DirectorySeparatorChar.ToString() + "state.bin" : filename);
-			IFormatter formatter = new BinaryFormatter();
-			OnCoverSearchFinished = null;
-			using (Stream stream = new FileStream(target_file, FileMode.Create, FileAccess.Write, FileShare.None))
-			{
-				formatter.Serialize(stream, this);
-			}
-		}
+            return audiobookFiles;
+        }
 
-		private double ComputeTotalLength()
-		{
-			double total_time = 0;
-			foreach (KeyValuePair<string, double> pair in files)
-				total_time += pair.Value;
-			return total_time;
-		}
-		#endregion
+        public void Serialize(string filename = "")
+        {
+            // in case the filename was not set generate a default one "$AUDIOBOOK_PATH\state.bin"
+            var targetFile = filename == "" ? Path + System.IO.Path.DirectorySeparatorChar + "state.bin" : filename;
+            IFormatter formatter = new BinaryFormatter();
+            OnCoverSearchFinished = null;
+            using (Stream stream = new FileStream(targetFile, FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                formatter.Serialize(stream, this);
+            }
+        }
 
-		#region Playback
-		/// <summary>
-		/// Start playback with the assumption that the user wants to continue where he stopped. Uses the position as reference.
-		/// </summary>
-		public void Play()
-		{
-			if (!isPlaying)
-				PlayFile(AbsolutePositionToFileAndPosition(position));
-		}
+        private double ComputeTotalLength()
+        {
+            double totalTime = 0;
+            foreach (var pair in Files)
+                totalTime += pair.Value;
+            return totalTime;
+        }
 
-		private void PlayFile(KeyValuePair<string, double> file)
-		{
-			StopPlayback();
-			EnsureAudioPlayer();
-			current_file = file;
-			audioPlayer.Play(current_file);
-			isPlaying = true;
-		}
+        #endregion
 
-		private void StopPlayback()
-		{
-			if (audioPlayer != null)
-				audioPlayer.Stop();
-		}
+        #region Playback
 
-		private void EnsureAudioPlayer()
-		{
-			if (audioPlayer == null)
-			{
-				audioPlayer = new AudioPlayer();
-				audioPlayer.OnFinished += audioPlayer_OnFinished;
-			}
-		}
+        /// <summary>
+        ///     Start playback with the assumption that the user wants to continue where he stopped. Uses the position as
+        ///     reference.
+        /// </summary>
+        public void Play()
+        {
+            if (!_isPlaying)
+                PlayFile(AbsolutePositionToFileAndPosition(_position));
+        }
 
-		void audioPlayer_OnFinished(object source, PlaybackEventArgs e)
-		{
-			//TODO: beim Pollen der Position den Filewechsel berücksichtigen mit einem negativen Wert!
-			int nextIndex = files.IndexOfKey(e.CurrentFile) + 1;
-			PlayFile(new KeyValuePair<string, double>(files.ElementAt(nextIndex).Key, 0));
-		}
+        private void PlayFile(KeyValuePair<string, double> file)
+        {
+            StopPlayback();
+            EnsureAudioPlayer();
+            _currentFile = file;
+            _audioPlayer.Play(_currentFile);
+            _isPlaying = true;
+        }
 
-		public void Stop()
-		{
-			if(audioPlayer != null)
-			{
-				audioPlayer.Pause();
-				isPlaying = false;
-			}
-		}
+        private void StopPlayback()
+        {
+            if (_audioPlayer != null)
+                _audioPlayer.Stop();
+        }
 
-		private double FileAndPositionToAbsolutePosition(string file, double position)
-		{
-			double length = 0;
-			int i = 0;
-			while(files.ElementAt(i).Key != file)
-			{
-				length += files.ElementAt(i).Value;
-				i++;
-			}
-			return length + position;
-		}
+        private void EnsureAudioPlayer()
+        {
+            if (_audioPlayer == null)
+            {
+                _audioPlayer = new AudioPlayer();
+                _audioPlayer.OnFinished += audioPlayer_OnFinished;
+            }
+        }
 
-		/// <summary>
-		/// Computes the file and position in the file for a given absolute position.
-		/// </summary>
-		/// <remarks>If the absolute position is a position outside of the audiobook the function will return either 0 or a position at the very end.</remarks>
-		/// <param name="absolute_position"></param>
-		/// <returns></returns>
-		private KeyValuePair<string, double> AbsolutePositionToFileAndPosition(double absolute_position)
-		{
-			if (absolute_position <= 0)
-				return new KeyValuePair<string, double>(files.First().Key, 0);
+        private void audioPlayer_OnFinished(object source, PlaybackEventArgs e)
+        {
+            //TODO: beim Pollen der Position den Filewechsel berücksichtigen mit einem negativen Wert!
+            var nextIndex = Files.IndexOfKey(e.CurrentFile) + 1;
+            PlayFile(new KeyValuePair<string, double>(Files.ElementAt(nextIndex).Key, 0));
+        }
 
-			double current_position = 0;
-			for (int i = 0; i < files.Count; i++)
-			{
-				if (current_position + files.ElementAt(i).Value > absolute_position)
-					return new KeyValuePair<string, double>(files.ElementAt(i).Key, absolute_position - current_position);
-				else
-					current_position += files.ElementAt(i).Value;
-			}
-			return files.Last();
-			//throw new ArgumentException("Absolute position is not inside the audiobook.");
-		}
+        public void Stop()
+        {
+            if (_audioPlayer != null)
+            {
+                _audioPlayer.Pause();
+                _isPlaying = false;
+            }
+        }
 
-		public void UpdateStats(double seconds_passed)
-		{
-			position += seconds_passed;
-		}
+/*
+        private double FileAndPositionToAbsolutePosition(string file, double position)
+        {
+            double length = 0;
+            var i = 0;
+            while (Files.ElementAt(i).Key != file)
+            {
+                length += Files.ElementAt(i).Value;
+                i++;
+            }
 
-		#endregion
-		
-		#region Properties
-		public string Name
-		{ get { return name; } }
+            return length + position;
+        }
+*/
 
-		public double Progress
-		{ get { return position / length; } }
+        /// <summary>
+        ///     Computes the file and position in the file for a given absolute position.
+        /// </summary>
+        /// <remarks>
+        ///     If the absolute position is a position outside of the audiobook the function will return either 0 or a
+        ///     position at the very end.
+        /// </remarks>
+        /// <param name="absolutePosition"></param>
+        /// <returns></returns>
+        private KeyValuePair<string, double> AbsolutePositionToFileAndPosition(double absolutePosition)
+        {
+            if (absolutePosition <= 0)
+                return new KeyValuePair<string, double>(Files.First().Key, 0);
 
-		public SortedList<string, double> Files
-		{ get { return files; } }
+            double currentPosition = 0;
+            for (var i = 0; i < Files.Count; i++)
+                if (currentPosition + Files.ElementAt(i).Value > absolutePosition)
+                    return new KeyValuePair<string, double>(Files.ElementAt(i).Key,
+                        absolutePosition - currentPosition);
+                else
+                    currentPosition += Files.ElementAt(i).Value;
+            return Files.Last();
+            //throw new ArgumentException("Absolute position is not inside the audiobook.");
+        }
 
-		public string Path
-		{ get { return path; } }
+        public void UpdateStats(double secondsPassed)
+        {
+            _position += secondsPassed;
+        }
 
-		public double Position
-		{ 
-			get { return position; }
-			set
-			{
-				position = Math.Min(Math.Max(0, value), length);
-				KeyValuePair<string, double> pair;
-				pair = AbsolutePositionToFileAndPosition(value);
-				current_file = pair;
-				if (audioPlayer != null && isPlaying)
-				{
-					audioPlayer.Stop();
-					audioPlayer.Play(pair.Key, pair.Value);
-				}
-			}
-		}
+        #endregion
 
-		public TimeSpan PositionAsTimeSpan
-		{ 
-			get 
-			{ return new TimeSpan(0, 0, (int)position); }
-			set
-			{ Position = value.TotalSeconds; }
-		}
+        #region Properties
 
-		public double Length
-		{ get { return length; } }
+        public string Name { get; private set; }
 
-		public TimeSpan LengthAsTimeSpan
-		{ get { return new TimeSpan(0, 0, (int)length); } }
+        public double Progress => _position / Length;
 
-		public System.Drawing.Image Cover
-		{
-			get { return image; } 
-			set
-			{
-				this.image = value;
-				var list = new List<System.Drawing.Image>();
-				list.Add(value);
-				ImageSearchEventArgs args = new ImageSearchEventArgs(list);
-				OnCoverSearchFinished(this, args);
-			}
-		}
+        public SortedList<string, double> Files { get; private set; }
 
-		public bool IsPlaying
-		{ get { return isPlaying; } }
+        public string Path { get; private set; }
 
-		public List<Bookmark> Bookmarks
-		{
-			get 
-			{
-				if (bookmarks == null)
-					bookmarks = new List<Bookmark>();
-				return bookmarks; 
-			}
-			set
-			{
-				if (value == null)
-					bookmarks.Clear();
-				bookmarks = value;
-			}
-		}
-		#endregion
-	}
+        public double Position
+        {
+            get => _position;
+            set
+            {
+                _position = Math.Min(Math.Max(0, value), Length);
+                KeyValuePair<string, double> pair;
+                pair = AbsolutePositionToFileAndPosition(value);
+                _currentFile = pair;
+                if (_audioPlayer != null && _isPlaying)
+                {
+                    _audioPlayer.Stop();
+                    _audioPlayer.Play(pair.Key, pair.Value);
+                }
+            }
+        }
+
+        public TimeSpan PositionAsTimeSpan
+        {
+            get => new TimeSpan(0, 0, (int) _position);
+            set => Position = value.TotalSeconds;
+        }
+
+        public double Length { get; private set; }
+
+        public TimeSpan LengthAsTimeSpan => new TimeSpan(0, 0, (int) Length);
+
+        public Image Cover
+        {
+            get => _image;
+            set
+            {
+                _image = value;
+                var list = new List<Image> {value};
+                var args = new ImageSearchEventArgs(list);
+                OnCoverSearchFinished?.Invoke(this, args);
+            }
+        }
+
+        public bool IsPlaying => _isPlaying;
+
+        public List<Bookmark> Bookmarks
+        {
+            get => _bookmarks ?? (_bookmarks = new List<Bookmark>());
+            set
+            {
+                if (value == null)
+                    _bookmarks.Clear();
+                _bookmarks = value;
+            }
+        }
+
+        #endregion
+    }
 }

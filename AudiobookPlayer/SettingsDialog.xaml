@@ -3,89 +3,91 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 		xmlns:local="clr-namespace:AudiobookPlayer"
         Title="SettingsDialog" Height="200" Width="533" ResizeMode="NoResize">
-	<Window.Resources>
-		<ControlTemplate x:Key="validationTemplate">
-			<DockPanel>
-				<TextBlock Foreground="Red" FontSize="20">!</TextBlock>
-				<AdornedElementPlaceholder/>
-			</DockPanel>
-		</ControlTemplate>
-		<Style x:Key="textBoxInError" TargetType="{x:Type TextBox}">
-			<Style.Triggers>
-				<Trigger Property="Validation.HasError" Value="true">
-					<Setter Property="ToolTip"
+    <Window.Resources>
+        <ControlTemplate x:Key="validationTemplate">
+            <DockPanel>
+                <TextBlock Foreground="Red" FontSize="20">!</TextBlock>
+                <AdornedElementPlaceholder/>
+            </DockPanel>
+        </ControlTemplate>
+        <Style x:Key="textBoxInError" TargetType="{x:Type TextBox}">
+            <Style.Triggers>
+                <Trigger Property="Validation.HasError" Value="true">
+                    <Setter Property="ToolTip"
 						Value="{Binding RelativeSource={x:Static RelativeSource.Self},
                               Path=(Validation.Errors)[0].ErrorContent}"/>
-				</Trigger>
-			</Style.Triggers>
-		</Style>
-	</Window.Resources>
-	<Grid>
-		<Grid.RowDefinitions>
-			<RowDefinition />
-			<RowDefinition />
-			<RowDefinition />
-			<RowDefinition />
-			<RowDefinition />
-			<RowDefinition Height="28"/>
-		</Grid.RowDefinitions>
-		<Grid.ColumnDefinitions>
-			<ColumnDefinition Width="150"/>
-			<ColumnDefinition Width="*"/>
-		</Grid.ColumnDefinitions>
-		<Label Height="26" Grid.Row="0" Grid.Column="0" Content="Audiobook path" />
-		<Label Height="26" Grid.Row="1" Grid.Column="0" Content="Small skip (seconds)" />
-		<Label Height="26" Grid.Row="2" Grid.Column="0" Content="Large skip (seconds)" />
-		<Label Height="26" Grid.Row="3" Grid.Column="0" Content="Update intervall (seconds)" />
-		<Label Height="26" Grid.Row="4" Grid.Column="0" Content="Background Threads" />
-		<TextBox Height="24" Grid.Row="0" Grid.Column="1" Margin="2,2,2,2" Name="txtAudiobookPath">
-			<TextBox.Text>
-				<Binding Path="AudiobookPath" UpdateSourceTrigger="PropertyChanged">
-					<Binding.ValidationRules>
-						<local:PathValidationRule ErrorMessage="The path you entered is not valid." />
-					</Binding.ValidationRules>
-				</Binding>
-			</TextBox.Text>
-		</TextBox>
-		<TextBox Height="24" Grid.Row="1" Grid.Column="1" Margin="2,2,2,2" Name="txtSmallSkipSeconds">
-			<TextBox.Text>
-				<Binding Path="SmallSkipSeconds" UpdateSourceTrigger="PropertyChanged">
-					<Binding.ValidationRules>
-						<local:DoubleRangeValidationRule MinimumAsString="1" MaximumAsString="60000" ErrorMessage="Value needs to be between 1 and 60000 seconds."/>
-					</Binding.ValidationRules>
-				</Binding>
-			</TextBox.Text>
-		</TextBox>
-		<TextBox Height="24" Grid.Row="2" Grid.Column="1" Margin="2,2,2,2" Name="txtLargeSkipSeconds">
-			<TextBox.Text>
-				<Binding Path="LargeSkipSeconds" UpdateSourceTrigger="PropertyChanged">
-					<Binding.ValidationRules>
-						<local:DoubleRangeValidationRule MinimumAsString="1" MaximumAsString="60000" ErrorMessage="Value needs to be between 1 and 60000 seconds."/>
-					</Binding.ValidationRules>
-				</Binding>
-			</TextBox.Text>
-		</TextBox>
-		<TextBox Height="24" Grid.Row="3" Grid.Column="1" Margin="2,2,2,2" Name="txtUpdateIntervallSeconds">
-			<TextBox.Text>
-				<Binding Path="AudiobookUpdateIntervall" UpdateSourceTrigger="PropertyChanged">
-					<Binding.ValidationRules>
-						<local:DoubleRangeValidationRule MinimumAsString="0.1" MaximumAsString="60" ErrorMessage="Value needs to be between 0.1 and 60 seconds."/>
-					</Binding.ValidationRules>
-				</Binding>
-			</TextBox.Text>
-		</TextBox>
-		<TextBox Height="24" Grid.Row="4" Grid.Column="1" Margin="2,2,2,2" Name="txtBackgroundThreads">
-			<TextBox.Text>
-				<Binding Path="NoOfThreads" UpdateSourceTrigger="PropertyChanged">
-					<Binding.ValidationRules>
-						<local:IntRangeValidationRule MinimumAsString="1" MaximumAsString="8" ErrorMessage="Value needs to be between one and eight."/>
-					</Binding.ValidationRules>
-				</Binding>
-			</TextBox.Text>
-		</TextBox>
-		<WrapPanel Grid.Row="6" Grid.Column="1" FlowDirection="RightToLeft">
-			<Button Name="cmdAbort" Grid.Row="5" Grid.Column="1" Content="Abort" Margin="2,2,2,2" Click="cmdAbort_Click" Width="75" Height="23" HorizontalAlignment="Right"/>
-			<Button Name="cmdOk" Grid.Row="5" Grid.Column="0" Content="Ok" Margin="2,2,2,2" Click="cmdOk_Click" Width="75" Height="23" HorizontalAlignment="Right"/>
-		</WrapPanel>
-	</Grid>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition />
+            <RowDefinition />
+            <RowDefinition />
+            <RowDefinition />
+            <RowDefinition Height="28"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="150"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <Label Height="26" Grid.Row="0" Grid.Column="0" Content="Audiobook path" />
+        <Label Height="26" Grid.Row="1" Grid.Column="0" Content="Small skip (seconds)" />
+        <Label Height="26" Grid.Row="2" Grid.Column="0" Content="Large skip (seconds)" />
+        <Label Height="26" Grid.Row="3" Grid.Column="0" Content="Update intervall (seconds)" />
+        <Label Height="26" Grid.Row="4" Grid.Column="0" Content="Background Threads" />
+        <TextBox Height="24" Grid.Row="0" Grid.Column="1" Margin="2,2,2,2" Name="txtAudiobookPath">
+            <TextBox.Text>
+                <Binding Path="AudiobookPath" UpdateSourceTrigger="PropertyChanged">
+                    <Binding.ValidationRules>
+                        <local:PathValidationRule ErrorMessage="The path you entered is not valid." />
+                    </Binding.ValidationRules>
+                </Binding>
+            </TextBox.Text>
+        </TextBox>
+        <Button Grid.Row="0" Grid.Column="2" Content="..." Padding="6" Click="BrowseForFolderClick"></Button>
+        <TextBox Height="24" Grid.Row="1" Grid.Column="1" Margin="2,2,2,2" Name="txtSmallSkipSeconds">
+            <TextBox.Text>
+                <Binding Path="SmallSkipSeconds" UpdateSourceTrigger="PropertyChanged">
+                    <Binding.ValidationRules>
+                        <local:DoubleRangeValidationRule MinimumAsString="1" MaximumAsString="60000" ErrorMessage="Value needs to be between 1 and 60000 seconds."/>
+                    </Binding.ValidationRules>
+                </Binding>
+            </TextBox.Text>
+        </TextBox>
+        <TextBox Height="24" Grid.Row="2" Grid.Column="1" Margin="2,2,2,2" Name="txtLargeSkipSeconds">
+            <TextBox.Text>
+                <Binding Path="LargeSkipSeconds" UpdateSourceTrigger="PropertyChanged">
+                    <Binding.ValidationRules>
+                        <local:DoubleRangeValidationRule MinimumAsString="1" MaximumAsString="60000" ErrorMessage="Value needs to be between 1 and 60000 seconds."/>
+                    </Binding.ValidationRules>
+                </Binding>
+            </TextBox.Text>
+        </TextBox>
+        <TextBox Height="24" Grid.Row="3" Grid.Column="1" Margin="2,2,2,2" Name="txtUpdateIntervallSeconds">
+            <TextBox.Text>
+                <Binding Path="AudiobookUpdateIntervall" UpdateSourceTrigger="PropertyChanged">
+                    <Binding.ValidationRules>
+                        <local:DoubleRangeValidationRule MinimumAsString="0.1" MaximumAsString="60" ErrorMessage="Value needs to be between 0.1 and 60 seconds."/>
+                    </Binding.ValidationRules>
+                </Binding>
+            </TextBox.Text>
+        </TextBox>
+        <TextBox Height="24" Grid.Row="4" Grid.Column="1" Margin="2,2,2,2" Name="txtBackgroundThreads">
+            <TextBox.Text>
+                <Binding Path="NoOfThreads" UpdateSourceTrigger="PropertyChanged">
+                    <Binding.ValidationRules>
+                        <local:IntRangeValidationRule MinimumAsString="1" MaximumAsString="8" ErrorMessage="Value needs to be between one and eight."/>
+                    </Binding.ValidationRules>
+                </Binding>
+            </TextBox.Text>
+        </TextBox>
+        <WrapPanel Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="2" FlowDirection="RightToLeft">
+            <Button Name="cmdAbort" Grid.Row="5" Grid.Column="1" Content="Abort" Margin="2,2,2,2" Click="cmdAbort_Click" Width="75" Height="23" HorizontalAlignment="Right"/>
+            <Button Name="cmdOk" Grid.Row="5" Grid.Column="0" Content="Ok" Margin="2,2,2,2" Click="cmdOk_Click" Width="75" Height="23" HorizontalAlignment="Right"/>
+        </WrapPanel>
+    </Grid>
 </Window>

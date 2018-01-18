@@ -9,106 +9,109 @@ using System.ComponentModel;
 
 namespace AudiobookPlayer
 {
-	public class Config : INotifyPropertyChanged
-	{
-		const string UPDATE_INTERVALL_IDENT = "update_intervall_seconds";
-		const string SMALL_SKIP_SECONDS_IDENT = "small_skip_seconds";
-		const string LARGE_SKIP_SECONDS_IDENT = "big_skip_seconds";
-		const string NO_OF_THREADS_IDENT = "max_background_threads";
-		const string AUDIOBOOK_PATH = "audio_book_path";
+    public class Config : INotifyPropertyChanged
+    {
+        const string UPDATE_INTERVALL_IDENT = "update_intervall_seconds";
+        const string SMALL_SKIP_SECONDS_IDENT = "small_skip_seconds";
+        const string LARGE_SKIP_SECONDS_IDENT = "big_skip_seconds";
+        const string NO_OF_THREADS_IDENT = "max_background_threads";
+        const string AUDIOBOOK_PATH = "audio_book_path";
 
-		double audiobook_update_intervall;
-		double small_skip_seconds;
-		double large_skip_seconds;
-		int no_of_background_threads;
-		string audiobook_path;
+        double audiobook_update_intervall;
+        double small_skip_seconds;
+        double large_skip_seconds;
+        int no_of_background_threads;
+        string audiobook_path;
 
-		public Config()
-		{
-			ReadConfigValues();
-		}
+        public Config()
+        {
+            ReadConfigValues();
+        }
 
-		/// <summary>
-		/// Creates a copy of the class.
-		/// </summary>
-		/// <param name="config">Class instance that will be cloned.</param>
-		public Config(Config config)
-		{
-			this.AudiobookPath = config.AudiobookPath;
-			this.AudiobookUpdateIntervall = config.AudiobookUpdateIntervall;
-			this.LargeSkipSeconds = config.LargeSkipSeconds;
-			this.NoOfThreads = config.NoOfThreads;
-			this.SmallSkipSeconds = config.SmallSkipSeconds;
-		}
+        /// <summary>
+        /// Creates a copy of the class.
+        /// </summary>
+        /// <param name="config">Class instance that will be cloned.</param>
+        public Config(Config config)
+        {
+            AudiobookPath = config.AudiobookPath;
+            AudiobookUpdateIntervall = config.AudiobookUpdateIntervall;
+            LargeSkipSeconds = config.LargeSkipSeconds;
+            NoOfThreads = config.NoOfThreads;
+            SmallSkipSeconds = config.SmallSkipSeconds;
+        }
 
-		public void SaveConfig()
-		{
-			Properties.Settings.Default.AudiobookUpdateIntervall = audiobook_update_intervall;
-			Properties.Settings.Default.SmallSkipSize = small_skip_seconds;
-			Properties.Settings.Default.LargeSkipSize = large_skip_seconds;
-			Properties.Settings.Default.BackgroundThreads = no_of_background_threads;
-			Properties.Settings.Default.AudiobookPath = audiobook_path;
-			Properties.Settings.Default.Save();
-		}
+        public void SaveConfig()
+        {
+            Properties.Settings.Default.AudiobookUpdateIntervall = audiobook_update_intervall;
+            Properties.Settings.Default.SmallSkipSize = small_skip_seconds;
+            Properties.Settings.Default.LargeSkipSize = large_skip_seconds;
+            Properties.Settings.Default.BackgroundThreads = no_of_background_threads;
+            Properties.Settings.Default.AudiobookPath = audiobook_path;
+            Properties.Settings.Default.Save();
+        }
 
-		private void ReadConfigValues()
-		{
-			audiobook_update_intervall = Properties.Settings.Default.AudiobookUpdateIntervall;
-			small_skip_seconds = Properties.Settings.Default.SmallSkipSize;
-			large_skip_seconds = Properties.Settings.Default.LargeSkipSize;
-			no_of_background_threads = Properties.Settings.Default.BackgroundThreads;
-			audiobook_path = Properties.Settings.Default.AudiobookPath;
-		}
+        private void ReadConfigValues()
+        {
+            audiobook_update_intervall = Properties.Settings.Default.AudiobookUpdateIntervall;
+            small_skip_seconds = Properties.Settings.Default.SmallSkipSize;
+            large_skip_seconds = Properties.Settings.Default.LargeSkipSize;
+            no_of_background_threads = Properties.Settings.Default.BackgroundThreads;
+            audiobook_path = Properties.Settings.Default.AudiobookPath;
+        }
 
-		#region INotifyPropertyChanged Members
-		public event PropertyChangedEventHandler PropertyChanged;
+        #region INotifyPropertyChanged Members
+        public event PropertyChangedEventHandler PropertyChanged;
 
-		protected virtual void OnPropertyChanged(PropertyChangedEventArgs e)
-		{
-			if (this.PropertyChanged != null)
-				this.PropertyChanged(this, e);
-		}
-		#endregion
+        protected virtual void OnPropertyChanged(PropertyChangedEventArgs e)
+        {
+            if (PropertyChanged != null)
+                PropertyChanged(this, e);
+        }
+        #endregion
 
-		#region Properties
-		public double AudiobookUpdateIntervall
-		{
-			get { return audiobook_update_intervall; }
-			set 
-			{ 
-				audiobook_update_intervall = value;
-			}
-		}
+        #region Properties
+        public double AudiobookUpdateIntervall
+        {
+            get { return audiobook_update_intervall; }
+            set
+            {
+                audiobook_update_intervall = value;
+            }
+        }
 
-		public double SmallSkipSeconds
-		{
-			get { return small_skip_seconds; }
-			set { small_skip_seconds = value; }
-		}
+        public double SmallSkipSeconds
+        {
+            get { return small_skip_seconds; }
+            set { small_skip_seconds = value; }
+        }
 
-		public double LargeSkipSeconds
-		{
-			get { return large_skip_seconds; }
-			set { large_skip_seconds = value; }
-		}
+        public double LargeSkipSeconds
+        {
+            get { return large_skip_seconds; }
+            set { large_skip_seconds = value; }
+        }
 
-		public int NoOfThreads
-		{ 
-			get { return no_of_background_threads; }
-			set { no_of_background_threads = value; }
-		}
+        public int NoOfThreads
+        {
+            get { return no_of_background_threads; }
+            set { no_of_background_threads = value; }
+        }
 
-		public string AudiobookPath
-		{
-			get { return audiobook_path; }
-			set 
-			{
-				if (Directory.Exists(value))
-					audiobook_path = value;
-				else
-					throw new ApplicationException("Audiobook path does not point to an existing directory.");
-			}
-		}
-		#endregion
-	}
+        public string AudiobookPath
+        {
+            get { return audiobook_path; }
+            set
+            {
+                if (Directory.Exists(value))
+                    audiobook_path = value;
+                else
+                {
+                    //throw new ApplicationException("Audiobook path does not point to an existing directory."); 
+
+                }
+            }
+        }
+        #endregion
+    }
 }

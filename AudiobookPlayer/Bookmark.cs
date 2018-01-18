@@ -16,7 +16,7 @@ namespace AudiobookPlayer
 		public Bookmark(double position)
 		{
 			this.position = position;
-			this.name = "unnamed";
+			name = "unnamed";
 		}
 
 		public Bookmark(string name, double position)
@@ -39,7 +39,7 @@ namespace AudiobookPlayer
 
 		public string Description
 		{
-			get { return this.ToString(); }
+			get { return ToString(); }
 		}
 
 		public override string ToString()

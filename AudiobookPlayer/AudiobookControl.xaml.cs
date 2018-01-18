@@ -37,7 +37,7 @@ namespace AudiobookPlayer
 			InitializeComponent();
 			dockContent.IsVisibleChanged += dockContent_IsVisibleChanged;
 			audiobook = book;
-			this.Text = book.Name;
+			Text = book.Name;
 			if (book.Cover != null)
 				imgCover.Source = Utilities.BitmapSourceFromImage(book.Cover);
 			book.OnCoverSearchFinished += book_OnCoverSearchFinished;
@@ -46,7 +46,7 @@ namespace AudiobookPlayer
 
 		void book_OnCoverSearchFinished(object source, ImageSearchEventArgs e)
 		{
-			Dispatcher.Invoke(new Action(() => { this.imgCover.Source = Utilities.BitmapSourceFromImage(e.Results[0]); }));
+			Dispatcher.Invoke(new Action(() => { imgCover.Source = Utilities.BitmapSourceFromImage(e.Results[0]); }));
 		}
 
 		void SetupProgressBar(double progress)

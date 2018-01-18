@@ -66,7 +66,7 @@ namespace AudiobookPlayer
 				var image_control = CreateImageControl(bitmap_source);
 				wpImages.Children.Add(image_control);
 			}
-			imgWaiting.Visibility = System.Windows.Visibility.Collapsed;
+			imgWaiting.Visibility = Visibility.Collapsed;
 		}
 
 		private Image CreateImageControl(BitmapSource image)

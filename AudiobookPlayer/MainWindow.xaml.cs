@@ -82,7 +82,7 @@ namespace AudiobookPlayer
 
 		void AudiobookScan_OnScanFinished(object source, AudioBookArgs e)
 		{
-			Dispatcher.Invoke(new Action(() => { var control = new AudiobookControl(e.Audiobook); control.Margin = new Thickness(5); wpAudiobooks.Children.Add(control); control.MouseDoubleClick += AudiobookControl_MouseDoubleClick; control.ContextMenu = (ContextMenu)this.Resources["Audiobook_Context_Menu"]; }));
+			Dispatcher.Invoke(new Action(() => { var control = new AudiobookControl(e.Audiobook); control.Margin = new Thickness(5); wpAudiobooks.Children.Add(control); control.MouseDoubleClick += AudiobookControl_MouseDoubleClick; control.ContextMenu = (ContextMenu)Resources["Audiobook_Context_Menu"]; }));
 			audiobooks.Add(e.Audiobook);
 			Running_Threads--;
 		}
@@ -103,7 +103,7 @@ namespace AudiobookPlayer
 				current_audiobook.Stop();
 				DeselectCurrentAudiobook();
 			}
-			this.DataContext = audiobook;
+			DataContext = audiobook;
 			DeselectAllAudiobookControls();
 			current_audiobook = audiobook;
 			GetControlForAudiobook(audiobook).IsSelected = true;
@@ -177,10 +177,10 @@ namespace AudiobookPlayer
 				if (old_number == 0 && running_threads > 0)
 				{
 					pbCurrentActivity.IsIndeterminate = true;
-					Dispatcher.Invoke(new Action(() => { sbStatus.Visibility = System.Windows.Visibility.Visible; }));
+					Dispatcher.Invoke(new Action(() => { sbStatus.Visibility = Visibility.Visible; }));
 				}
 				if (running_threads == 0)
-					Dispatcher.Invoke(new Action(() => { pbCurrentActivity.IsIndeterminate = false; sbStatus.Visibility = System.Windows.Visibility.Collapsed; }));
+					Dispatcher.Invoke(new Action(() => { pbCurrentActivity.IsIndeterminate = false; sbStatus.Visibility = Visibility.Collapsed; }));
 				Dispatcher.Invoke(new Action(() => { lblStatusBar.Content = "Current job is running on " + running_threads + " threads."; }));
 			}
 		}
@@ -208,33 +208,33 @@ namespace AudiobookPlayer
 
 		private void CollapsePlayer()
 		{
-			svAudiobooks.Visibility = System.Windows.Visibility.Collapsed;
-			window_size = new Size(this.Width, this.Height);
+			svAudiobooks.Visibility = Visibility.Collapsed;
+			window_size = new Size(Width, Height);
 			if (Utilities.DwmIsCompositionEnabled())
 			{
-				this.MinHeight = 70;
-				this.MaxHeight = 70;
-				this.MinWidth = 585;
-				this.MaxWidth = 585;
+				MinHeight = 70;
+				MaxHeight = 70;
+				MinWidth = 585;
+				MaxWidth = 585;
 			}
 			else
 			{
-				this.MinHeight = 59;
-				this.MaxHeight = 59;
-				this.MinWidth = 585;
-				this.MaxWidth = 585;
+				MinHeight = 59;
+				MaxHeight = 59;
+				MinWidth = 585;
+				MaxWidth = 585;
 			}
 		}
 
 		private void EnlargePlayer()
 		{
-			svAudiobooks.Visibility = System.Windows.Visibility.Visible;
-			this.MinHeight = 485;
-			this.MaxHeight = 485;
-			this.MinWidth = 585;
-			this.MaxWidth = Int32.MaxValue;
+			svAudiobooks.Visibility = Visibility.Visible;
+			MinHeight = 485;
+			MaxHeight = 485;
+			MinWidth = 585;
+			MaxWidth = Int32.MaxValue;
 			//Application.Current.MainWindow.Width = window_size.Width;
-			this.Width = window_size.Width;
+			Width = window_size.Width;
 		}
 
 		private void SelectCover(Audiobook book)
@@ -248,14 +248,14 @@ namespace AudiobookPlayer
 
 		private void ToggleSidebar()
 		{
-			if (dpSidebar.Visibility == System.Windows.Visibility.Visible)
+			if (dpSidebar.Visibility == Visibility.Visible)
 			{
-				dpSidebar.Visibility = System.Windows.Visibility.Collapsed;
+				dpSidebar.Visibility = Visibility.Collapsed;
 				cmdSidebar.IsChecked = false;
 			}
 			else
 			{
-				dpSidebar.Visibility = System.Windows.Visibility.Visible;
+				dpSidebar.Visibility = Visibility.Visible;
 				cmdSidebar.IsChecked = true;
 			}
 		}
@@ -340,7 +340,7 @@ namespace AudiobookPlayer
 			dialog.ShowDialog();
 			if(dialog.DialogResult.HasValue && dialog.DialogResult.Value)
 			{
-				this.config = dialog.Config;
+				config = dialog.Config;
 			}
 		}
 
@@ -448,6 +448,6 @@ namespace AudiobookPlayer
 		{ this.audiobook = audiobook; }
 
 		public Audiobook Audiobook
-		{ get { return this.audiobook; } }
+		{ get { return audiobook; } }
 	}
 }

@@ -22,7 +22,7 @@ namespace AudiobookPlayer
 		public GotoDialog(Audiobook book)
 		{
 			InitializeComponent();
-			this.DataContext = book;
+			DataContext = book;
 		}
 	}
 }
